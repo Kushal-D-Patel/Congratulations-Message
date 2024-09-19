@@ -1,0 +1,56 @@
+#!/bin/bash
+
+NUM=5
+
+while getopts ":mrn:" opt; do
+    case $opt in
+        m) FORMAT="markus" ;;
+        r) FORMAT="ro" ;;
+        n) NUM="$OPTARG" ;;
+        \?) usage ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+if [ -z "$FORMAT" ]; then
+    exit 1
+fi
+
+if [ "$#" -ne 1 ]; then
+    exit 1
+fi
+
+ROSTER=$1
+
+process_roster_for_markus() {
+    cut -d',' -f2,3 "$ROSTER" | sort -t, -k1,1
+}
+
+process_roster_for_ro() {
+    cut -d',' -f1,3 "$ROSTER" | sort -t, -k1,1
+}
+
+process_marks_markus() {
+    sort -t, -k1,1
+}
+
+process_marks_ro() {
+    sort -t, -k1,1
+}
+
+combine_and_process_markus() {
+    join -t, -1 1 -2 1 -o 1.2,2.2 <(process_roster_for_markus) <(process_marks_markus) |
+    sort -t, -k2,2nr | head -n "$NUM"
+}
+
+combine_and_process_ro() {
+    join -t, -1 1 -2 1 -o 1.2,2.2 <(process_roster_for_ro) <(process_marks_ro) |
+    sort -t, -k2,2nr | head -n "$NUM"
+}
+
+if [ "$FORMAT" = "markus" ]; then
+    combine_and_process_markus
+elif [ "$FORMAT" = "ro" ]; then
+    combine_and_process_ro
+fi
